@@ -4,11 +4,12 @@ const fs = require('fs');
 const cors = require('cors');
 
 const port = process.env.PORT || 3001;
-const corsOptions = {
-  origin: ["https://ekademe.com", "http://localhost:3001", "http://localhost:443"]
-}
 
 const app = express();
+
+const corsOptions = {
+  origin: ["https://ekademe.com", "http://localhost:3001"]
+}
 app.use(cors(corsOptions));
 
 cron.schedule('1 * * * * * *', () => {
@@ -22,7 +23,7 @@ cron.schedule('1 * * * * * *', () => {
 
 
 app.get('/health', (req, res) => {
-  return res.status(200);
+  return res.status(200).send('');
 });
 
 app.get('/api', (req, res) => {
