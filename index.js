@@ -1,15 +1,16 @@
 const express = require('express');
 const cron = require('node-cron');
 const fs = require('fs');
+const cors = require('cors');
+
+const corsOptions = {
+  origin: "https://ekademe.com/"
+}
 
 const app = express();
 
 cron.schedule('1 * * * * * *', () => {
- console.log('running'); 
-  const data = {
-    date: new Date(),
-  };
-
+  console.log('running'); 
   try {
     fs.writeFileSync('./data.json', JSON.stringify(exampleResponse));
   } catch (error) {
@@ -17,7 +18,7 @@ cron.schedule('1 * * * * * *', () => {
   }
 });
 
-app.get('/api', (req, res) => {
+app.get('/api', cors(corsOptions), (req, res) => {
   try {
     const data = fs.readFileSync('./data.json');
     const parsedData = JSON.parse(data);
