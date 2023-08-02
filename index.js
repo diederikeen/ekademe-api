@@ -3,6 +3,7 @@ const cron = require('node-cron');
 const fs = require('fs');
 const cors = require('cors');
 
+const port = process.env.PORT || 3001;
 const corsOptions = {
   origin: "https://ekademe.com/"
 }
@@ -34,7 +35,7 @@ app.get('/api', cors(corsOptions), (req, res) => {
   }
 });
 
-app.listen(3000, () => {
+app.listen(port, () => {
   console.log('app is active on 3000')
 });
 
