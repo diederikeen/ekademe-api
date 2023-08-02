@@ -5,10 +5,11 @@ const cors = require('cors');
 
 const port = process.env.PORT || 3001;
 const corsOptions = {
-  origin: "https://ekademe.com/"
+  origin: ["https://ekademe.com", "http://localhost:3001", "http://localhost:443"]
 }
 
 const app = express();
+app.use(cors(corsOptions));
 
 cron.schedule('1 * * * * * *', () => {
   console.log('running'); 
@@ -19,13 +20,12 @@ cron.schedule('1 * * * * * *', () => {
   }
 });
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://ekademe.com"); // update to match the domain you will make the request from
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
+
+app.get('/health', (req, res) => {
+  return res.status(200);
 });
 
-app.get('/api', cors(corsOptions), (req, res) => {
+app.get('/api', (req, res) => {
   try {
     const data = fs.readFileSync('./data.json');
     const parsedData = JSON.parse(data);
@@ -36,7 +36,7 @@ app.get('/api', cors(corsOptions), (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log('app is active on 3000')
+  console.log(`listening on ${port}`)
 });
 
 
