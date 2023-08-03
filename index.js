@@ -36,7 +36,6 @@ const jobFetchData = cron.schedule('1 * * * * * *', async () => {
   console.log('running'); 
   try {
     // const data = await fetchStoreData();
-    console.log({data})
     fs.writeFileSync('./data.json', JSON.stringify(exampleResponse));
   } catch (error) {
     console.log(error);
