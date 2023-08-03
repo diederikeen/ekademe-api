@@ -1,7 +1,9 @@
 const express = require('express');
+const routeCache = require('route-cache');
 const cron = require('node-cron');
 const fs = require('fs');
 const cors = require('cors');
+require('dotenv').config()
 
 const port = process.env.PORT || 3001;
 
@@ -12,13 +14,35 @@ const corsOptions = {
 }
 app.use(cors(corsOptions));
 
-cron.schedule('1 * * * * * *', () => {
+const options = {
+  method: "GET",
+  headers: {
+    "access-control-allow-origin": "*",
+    Authorization: `Bearer ${process.env.API_KEY}`
+  }
+}
+
+async function fetchStoreData() {
+  try {
+    const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks}`, {...options, method: "POST"}).then((res) => res.json());
+
+    return taskRes;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+const jobFetchData = cron.schedule('1 * * * * * *', async () => {
   console.log('running'); 
   try {
+    // const data = await fetchStoreData();
+    console.log({data})
     fs.writeFileSync('./data.json', JSON.stringify(exampleResponse));
   } catch (error) {
     console.log(error);
   }
+}, {
+  scheduled: false,
 });
 
 
@@ -26,7 +50,12 @@ app.get('/health', (req, res) => {
   return res.status(200).send('');
 });
 
-app.get('/api', (req, res) => {
+app.get('/start', (req, res) => {
+  jobFetchData.now();
+  res.send('');
+});
+
+app.get('/api', routeCache.cacheSeconds(60 * 60), (req, res) => {
   try {
     const data = fs.readFileSync('./data.json');
     const parsedData = JSON.parse(data);
@@ -38,6 +67,7 @@ app.get('/api', (req, res) => {
 
 app.listen(port, () => {
   console.log(`listening on ${port}`)
+  jobFetchData.start();
 });
 
 
