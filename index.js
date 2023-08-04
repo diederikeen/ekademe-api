@@ -59,6 +59,7 @@ const cronReplaceData = cron.schedule('* * 1 * * sunday', async () => {
   console.log('replacing');
   try {
     const data = await getRobot();
+    console.log('replaceData', data);
     fs.writeFileSync('./data.json', JSON.stringify(data ? data : exampleResponse));
   } catch (error) {
     console.error(error);
@@ -75,7 +76,7 @@ app.get('/start', (req, res) => {
 });
 
 app.get('/replace', (req, res) => {
-  cronReplaceData();
+  cronReplaceData.start();
   res.send('');
 });
 
