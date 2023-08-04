@@ -35,6 +35,7 @@ async function runRobot() {
 
 async function getRobot() {
   try {
+    console.log(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks?sort=-finishedAt`);
     const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks?sort=-finishedAt`, {...options}).then((res) => res.json());
 
     console.log('getRobot', taskRes)
@@ -60,9 +61,9 @@ const cronReplaceData = cron.schedule('* * 1 * * sunday', async () => {
   try {
     const data = await getRobot();
     console.log('replaceData', data);
-    console.log('using:', data? 'data': 'example res');
     const okeResponse = data.statusMessage === 'success';
 
+    console.log('using:', okeResponse ? 'data': 'example res');
     fs.writeFileSync('./data.json', JSON.stringify(okeResponse ? data : exampleResponse));
   } catch (error) {
     console.error(error);
