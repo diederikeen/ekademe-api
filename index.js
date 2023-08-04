@@ -35,7 +35,7 @@ async function runRobot() {
 
 async function getRobot() {
   try {
-    const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks`, {...options}).then((res) => res.json());
+    const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks?sort=-finishedAt`, {...options}).then((res) => res.json());
 
     console.log('getRobot', taskRes)
     return taskRes;
