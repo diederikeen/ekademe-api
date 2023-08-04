@@ -60,7 +60,7 @@ const cronReplaceData = cron.schedule('* * 1 * * sunday', async () => {
   try {
     const data = await getRobot();
     console.log('replaceData', data);
-    console.log('using:' data? 'data': 'example res');
+    console.log('using:', data? 'data': 'example res');
 
     fs.writeFileSync('./data.json', JSON.stringify(data ? data : exampleResponse));
   } catch (error) {
