@@ -82,7 +82,7 @@ app.get('/replace', (req, res) => {
   res.send('');
 });
 
-app.get('/api', routeCache.cacheSeconds(60 * 60), (req, res) => {
+app.get('/api', (req, res) => {
   try {
     const data = fs.readFileSync('./data.json');
     const parsedData = JSON.parse(data);
