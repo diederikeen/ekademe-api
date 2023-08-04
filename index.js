@@ -18,25 +18,36 @@ const options = {
   method: "GET",
   headers: {
     "access-control-allow-origin": "*",
-    Authorization: `Bearer ${process.env.API_KEY}`
+    "Authorization": `Bearer ${process.env.API_KEY}`
   }
 }
 
-async function fetchStoreData() {
+async function runRobot() {
   try {
-    const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks}`, {...options, method: "POST"}).then((res) => res.json());
+    const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks`, {...options, method: "POST"}).then((res) => res.json());
 
+    console.log('runRobot', taskRes);
     return taskRes;
   } catch (error) {
     console.error(error);
   }
 }
 
-const jobFetchData = cron.schedule('1 * * * * * *', async () => {
+async function getRobot() {
+  try {
+    const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks`, {...options}).then((res) => res.json());
+
+    console.log('getRobot', taskRes)
+    return taskRes;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+const cronRunRobot = cron.schedule('* * 0 * * sunday', async () => {
   console.log('running'); 
   try {
-    // const data = await fetchStoreData();
-    fs.writeFileSync('./data.json', JSON.stringify(exampleResponse));
+    await runRobot();
   } catch (error) {
     console.log(error);
   }
@@ -44,13 +55,27 @@ const jobFetchData = cron.schedule('1 * * * * * *', async () => {
   scheduled: false,
 });
 
+const cronReplaceData = cron.schedule('* * 1 * * sunday', async () => {
+  console.log('replacing');
+  try {
+    const data = await getRobot();
+    fs.writeFileSync('./data.json', JSON.stringify(data ? data : exampleResponse));
+  } catch (error) {
+    console.error(error);
+  }
+});
 
 app.get('/health', (req, res) => {
   return res.status(200).send('');
 });
 
 app.get('/start', (req, res) => {
-  jobFetchData.now();
+  cronRunRobot.now();
+  res.send('');
+});
+
+app.get('/replace', (req, res) => {
+  cronReplaceData();
   res.send('');
 });
 
@@ -66,7 +91,7 @@ app.get('/api', routeCache.cacheSeconds(60 * 60), (req, res) => {
 
 app.listen(port, () => {
   console.log(`listening on ${port}`)
-  jobFetchData.start();
+  cronRunRobot.start();
 });
 
 
