@@ -10,7 +10,7 @@ const port = process.env.PORT || 3001;
 const app = express();
 
 const corsOptions = {
-  origin: ["https://ekademe.com", "http://localhost:3001"]
+  origin: ["https://ekademe.com", "http://localhost:3001", "https://ekademe-api.onrender.com:443"]
 }
 app.use(cors(corsOptions));
 
