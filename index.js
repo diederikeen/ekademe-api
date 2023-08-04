@@ -64,6 +64,8 @@ const cronReplaceData = cron.schedule('* * 1 * * sunday', async () => {
   } catch (error) {
     console.error(error);
   }
+}, {
+  scheduled: false,
 });
 
 app.get('/health', (req, res) => {
@@ -76,7 +78,7 @@ app.get('/start', (req, res) => {
 });
 
 app.get('/replace', (req, res) => {
-  cronReplaceData.start();
+  cronReplaceData.now();
   res.send('');
 });
 
@@ -93,6 +95,7 @@ app.get('/api', routeCache.cacheSeconds(60 * 60), (req, res) => {
 app.listen(port, () => {
   console.log(`listening on ${port}`)
   cronRunRobot.start();
+  cronReplaceData.start();
 });
 
 
