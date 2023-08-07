@@ -22,9 +22,9 @@ const options = {
   }
 }
 
-async function runRobot() {
+async function runRobot(apiString) {
   try {
-    const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks`, {...options, method: "POST"}).then((res) => res.json());
+    const taskRes = await fetch(apiString, {...options, method: "POST"}).then((res) => res.json());
 
     console.log('runRobot', taskRes);
     return taskRes;
@@ -33,11 +33,10 @@ async function runRobot() {
   }
 }
 
-async function getRobot() {
+async function getRobot(apiString) {
   try {
-    console.log(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks?sort=-finishedAt`);
-    const taskRes = await fetch(`https://api.browse.ai/v2/robots/${process.env.ROBOT_ID}/tasks?sort=-finishedAt`, {...options}).then((res) => res.json());
-
+    console.log(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks?sort=-finishedAt`);
+    const taskRes = await fetch(apiString, {...options}).then((res) => res.json());
     console.log('getRobot', taskRes)
     return taskRes;
   } catch (error) {
@@ -45,10 +44,10 @@ async function getRobot() {
   }
 }
 
-const cronRunRobot = cron.schedule('* * 0 * * sunday', async () => {
+const cronRunFemaleRobot = cron.schedule('* * 0 * * sunday', async () => {
   console.log('running'); 
   try {
-    await runRobot();
+    await runRobot(`https://api.browse.ai/v2/robots/${process.env.FEMALE_ROBOT_ID}/tasks`);
   } catch (error) {
     console.log(error);
   }
@@ -56,15 +55,43 @@ const cronRunRobot = cron.schedule('* * 0 * * sunday', async () => {
   scheduled: false,
 });
 
-const cronReplaceData = cron.schedule('* * 1 * * sunday', async () => {
+const cronReplaceFemaleData = cron.schedule('* * 1 * * sunday', async () => {
   console.log('replacing');
   try {
-    const data = await getRobot();
+    const data = await getRobot(`https://api.browse.ai/v2/robots/${process.env.FEMALE_ROBOT_ID}/tasks?sort=-finishedAt`);
     console.log('replaceData', data);
     const okeResponse = data.messageCode === 'success';
 
-    console.log('using:', okeResponse ? 'data': 'example res');
-    fs.writeFileSync('./data.json', JSON.stringify(okeResponse ? data : exampleResponse));
+    console.log('using:', data ? 'data': 'example res');
+    fs.writeFileSync('./female.json', JSON.stringify(okeResponse ? data : exampleResponse));
+  } catch (error) {
+    console.error(error);
+  }
+}, {
+  scheduled: false,
+});
+
+
+const cronRunMaleRobot = cron.schedule('* * 0 * * sunday', async () => {
+  console.log('running'); 
+  try {
+    await runRobot(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks`);
+  } catch (error) {
+    console.log(error);
+  }
+}, {
+  scheduled: false,
+});
+
+const cronReplaceMaleData = cron.schedule('* * 1 * * sunday', async () => {
+  console.log('replacing');
+  try {
+    const data = await getRobot(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks?sort=-finishedAt`);
+    console.log('replaceData', data);
+    const okeResponse = data.messageCode === 'success';
+
+    console.log('using:', data ? 'data': 'example res');
+    fs.writeFileSync('./male.json', JSON.stringify(okeResponse ? data : exampleResponse));
   } catch (error) {
     console.error(error);
   }
@@ -76,19 +103,19 @@ app.get('/health', (req, res) => {
   return res.status(200).send('');
 });
 
-app.get('/start', (req, res) => {
-  cronRunRobot.now();
+app.get('/male/start', (req, res) => {
+  cronRunMaleRobot.now();
   res.send('');
 });
 
-app.get('/replace', (req, res) => {
-  cronReplaceData.now();
+app.get('/male/replace', (req, res) => {
+  cronReplaceMaleData.now();
   res.send('');
 });
 
-app.get('/api', (req, res) => {
+app.get('/male/api', (req, res) => {
   try {
-    const data = fs.readFileSync('./data.json');
+    const data = fs.readFileSync('./male.json');
     const parsedData = JSON.parse(data);
     res.send({data: parsedData});
   } catch (error) {
@@ -96,10 +123,35 @@ app.get('/api', (req, res) => {
   }
 });
 
+app.get('/female/start', (req, res) => {
+  cronRunFemaleRobot.now();
+  res.send('');
+});
+
+app.get('/female/replace', (req, res) => {
+  cronReplaceFemaleData.now();
+  res.send('');
+});
+
+app.get('/female/api', (req, res) => {
+  try {
+    const data = fs.readFileSync('./female.json');
+    const parsedData = JSON.parse(data);
+    res.send({data: parsedData});
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+
+
 app.listen(port, () => {
   console.log(`listening on ${port}`)
-  cronRunRobot.start();
-  cronReplaceData.start();
+  cronRunMaleRobot.start();
+  cronReplaceMaleData.start();
+
+  cronRunFemaleRobot.start();
+  cronReplaceFemaleData.start();
 });
 
 
