@@ -1,5 +1,4 @@
 const express = require('express');
-const routeCache = require('route-cache');
 const cron = require('node-cron');
 const fs = require('fs');
 const cors = require('cors');
@@ -32,6 +31,7 @@ async function runRobot(apiString) {
     console.error(error);
   }
 }
+// const schedule = '0 0 * * 0'; // Every Sunday at midnight
 
 async function getRobot(apiString) {
   try {
@@ -43,8 +43,7 @@ async function getRobot(apiString) {
     console.error(error);
   }
 }
-
-const cronRunFemaleRobot = cron.schedule('* * 0 * * sunday', async () => {
+const cronRunFemaleRobot = cron.schedule('0 0 * * 0', async () => {
   console.log('running'); 
   try {
     await runRobot(`https://api.browse.ai/v2/robots/${process.env.FEMALE_ROBOT_ID}/tasks`);
@@ -55,7 +54,7 @@ const cronRunFemaleRobot = cron.schedule('* * 0 * * sunday', async () => {
   scheduled: false,
 });
 
-const cronReplaceFemaleData = cron.schedule('* * 1 * * sunday', async () => {
+const cronReplaceFemaleData = cron.schedule('0 1 * * 0', async () => {
   console.log('replacing');
   try {
     const data = await getRobot(`https://api.browse.ai/v2/robots/${process.env.FEMALE_ROBOT_ID}/tasks?sort=-finishedAt`);
@@ -72,7 +71,7 @@ const cronReplaceFemaleData = cron.schedule('* * 1 * * sunday', async () => {
 });
 
 
-const cronRunMaleRobot = cron.schedule('* * 0 * * sunday', async () => {
+const cronRunMaleRobot = cron.schedule('0 0 * * 0', async () => {
   console.log('running'); 
   try {
     await runRobot(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks`);
@@ -83,7 +82,7 @@ const cronRunMaleRobot = cron.schedule('* * 0 * * sunday', async () => {
   scheduled: false,
 });
 
-const cronReplaceMaleData = cron.schedule('* * 1 * * sunday', async () => {
+const cronReplaceMaleData = cron.schedule('0 1 * * 0', async () => {
   console.log('replacing');
   try {
     const data = await getRobot(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks?sort=-finishedAt`);
