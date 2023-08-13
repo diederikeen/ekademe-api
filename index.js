@@ -50,6 +50,7 @@ const cronRunFemaleRobot = cron.schedule('0 0 * * 0', async () => {
   } catch (error) {
     console.log(error);
   }
+  cronRunFemaleRobot.stop();
 }, {
   scheduled: false,
 });
@@ -66,6 +67,8 @@ const cronReplaceFemaleData = cron.schedule('0 1 * * 0', async () => {
   } catch (error) {
     console.error(error);
   }
+
+  cronReplaceFemaleData.stop();
 }, {
   scheduled: false,
 });
@@ -78,6 +81,7 @@ const cronRunMaleRobot = cron.schedule('0 0 * * 0', async () => {
   } catch (error) {
     console.log(error);
   }
+  cronRunMaleRobot.stop();
 }, {
   scheduled: false,
 });
@@ -94,6 +98,7 @@ const cronReplaceMaleData = cron.schedule('0 1 * * 0', async () => {
   } catch (error) {
     console.error(error);
   }
+  cronReplaceMaleData.stop();
 }, {
   scheduled: false,
 });
