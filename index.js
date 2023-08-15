@@ -31,7 +31,6 @@ async function runRobot(apiString) {
     console.error(error);
   }
 }
-// const schedule = '0 0 * * 0'; // Every Sunday at midnight
 
 async function getRobot(apiString) {
   try {
@@ -43,17 +42,18 @@ async function getRobot(apiString) {
     console.error(error);
   }
 }
-const cronRunFemaleRobot = cron.schedule('0 0 * * 0', async () => {
-  console.log('running'); 
-  try {
-    await runRobot(`https://api.browse.ai/v2/robots/${process.env.FEMALE_ROBOT_ID}/tasks`);
-  } catch (error) {
-    console.log(error);
-  }
-  cronRunFemaleRobot.stop();
-}, {
-  scheduled: false,
-});
+
+// const cronRunFemaleRobot = cron.schedule('0 0 * * 0', async () => {
+//   console.log('running'); 
+//   try {
+//     await runRobot(`https://api.browse.ai/v2/robots/${process.env.FEMALE_ROBOT_ID}/tasks`);
+//   } catch (error) {
+//     console.log(error);
+//   }
+//   cronRunFemaleRobot.stop();
+// }, {
+//   scheduled: false,
+// });
 
 const cronReplaceFemaleData = cron.schedule('0 1 * * 0', async () => {
   console.log('replacing');
@@ -73,18 +73,17 @@ const cronReplaceFemaleData = cron.schedule('0 1 * * 0', async () => {
   scheduled: false,
 });
 
-
-const cronRunMaleRobot = cron.schedule('0 0 * * 0', async () => {
-  console.log('running'); 
-  try {
-    await runRobot(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks`);
-  } catch (error) {
-    console.log(error);
-  }
-  cronRunMaleRobot.stop();
-}, {
-  scheduled: false,
-});
+// const cronRunMaleRobot = cron.schedule('0 0 * * 0', async () => {
+//   console.log('running'); 
+//   try {
+//     await runRobot(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks`);
+//   } catch (error) {
+//     console.log(error);
+//   }
+//   cronRunMaleRobot.stop();
+// }, {
+//   scheduled: false,
+// });
 
 const cronReplaceMaleData = cron.schedule('0 1 * * 0', async () => {
   console.log('replacing');
@@ -128,7 +127,7 @@ app.get('/male/api', (req, res) => {
 });
 
 app.get('/female/start', (req, res) => {
-  cronRunFemaleRobot.now();
+  // cronRunFemaleRobot.now();
   res.send('');
 });
 
@@ -151,10 +150,10 @@ app.get('/female/api', (req, res) => {
 
 app.listen(port, () => {
   console.log(`listening on ${port}`)
-  cronRunMaleRobot.start();
+  // cronRunMaleRobot.start();
   cronReplaceMaleData.start();
 
-  cronRunFemaleRobot.start();
+  // cronRunFemaleRobot.start();
   cronReplaceFemaleData.start();
 });
 
