@@ -25,7 +25,6 @@ async function runRobot(apiString) {
   try {
     const taskRes = await fetch(apiString, {...options, method: "POST"}).then((res) => res.json());
 
-    console.log('runRobot', taskRes);
     return taskRes;
   } catch (error) {
     console.error(error);
@@ -34,36 +33,31 @@ async function runRobot(apiString) {
 
 async function getRobot(apiString) {
   try {
-    console.log(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks?sort=-finishedAt`);
     const taskRes = await fetch(apiString, {...options}).then((res) => res.json());
-    console.log('getRobot', taskRes)
     return taskRes;
   } catch (error) {
     console.error(error);
   }
 }
 
-// const cronRunFemaleRobot = cron.schedule('0 0 * * 0', async () => {
-//   console.log('running'); 
-//   try {
-//     await runRobot(`https://api.browse.ai/v2/robots/${process.env.FEMALE_ROBOT_ID}/tasks`);
-//   } catch (error) {
-//     console.log(error);
-//   }
-//   cronRunFemaleRobot.stop();
-// }, {
-//   scheduled: false,
-// });
-
 const cronReplaceFemaleData = cron.schedule('0 1 * * 0', async () => {
-  console.log('replacing');
   try {
     const data = await getRobot(`https://api.browse.ai/v2/robots/${process.env.FEMALE_ROBOT_ID}/tasks?sort=-finishedAt`);
-    console.log('replaceData', data);
     const okeResponse = data.messageCode === 'success';
+    const lastSuccessfulJob = data.result.robotTasks.items.filter((task) => task.status === 'successful')[0];
+    const hasMoreItems = Boolean(lastSuccessfulJob.capturedDataTemporaryUrl);
 
-    console.log('using:', data ? 'data': 'example res');
-    fs.writeFileSync('./female.json', JSON.stringify(okeResponse ? data : exampleResponse));
+    if (hasMoreItems) {
+      try {
+        const allItemResponse = await fetch(`${lastSuccessfulJob.capturedDataTemporaryUrl}`, {method: 'get'}).then((data) => data.json()) 
+        fs.writeFileSync('./female_new.json', JSON.stringify(allItemResponse.capturedLists['Extract Ekademe woman products']))
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      fs.writeFileSync('./female_new.json', JSON.stringify(okeResponse ? lastSuccessfulJob.capturedLists['Extract Ekademe woman products'] : exampleResponse));
+    }
+    // fs.writeFileSync('./female.json', JSON.stringify(okeResponse ? data : exampleResponse));
   } catch (error) {
     console.error(error);
   }
@@ -73,27 +67,24 @@ const cronReplaceFemaleData = cron.schedule('0 1 * * 0', async () => {
   scheduled: false,
 });
 
-// const cronRunMaleRobot = cron.schedule('0 0 * * 0', async () => {
-//   console.log('running'); 
-//   try {
-//     await runRobot(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks`);
-//   } catch (error) {
-//     console.log(error);
-//   }
-//   cronRunMaleRobot.stop();
-// }, {
-//   scheduled: false,
-// });
-
 const cronReplaceMaleData = cron.schedule('0 1 * * 0', async () => {
-  console.log('replacing');
   try {
     const data = await getRobot(`https://api.browse.ai/v2/robots/${process.env.MALE_ROBOT_ID}/tasks?sort=-finishedAt`);
-    console.log('replaceData', data);
     const okeResponse = data.messageCode === 'success';
+    const lastSuccessfulJob = data.result.robotTasks.items.filter((task) => task.status === 'successful')[0];
+  
+    const hasMoreItems = Boolean(lastSuccessfulJob.capturedDataTemporaryUrl);
 
-    console.log('using:', data ? 'data': 'example res');
-    fs.writeFileSync('./male.json', JSON.stringify(okeResponse ? data : exampleResponse));
+    if (hasMoreItems) {
+      try {
+        const allItemResponse = await fetch(`${lastSuccessfulJob.capturedDataTemporaryUrl}`, {method: 'get'}).then((data) => data.json()) 
+        fs.writeFileSync('./male_new.json', JSON.stringify(allItemResponse.capturedLists['Ekademe male products']))
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      fs.writeFileSync('./male_new.json', JSON.stringify(okeResponse ? lastSuccessfulJob.capturedLists['Ekademe male products'] : exampleResponse));
+    }
   } catch (error) {
     console.error(error);
   }
@@ -118,7 +109,7 @@ app.get('/male/replace', (req, res) => {
 
 app.get('/male/api', (req, res) => {
   try {
-    const data = fs.readFileSync('./male.json');
+    const data = fs.readFileSync('./male_new.json');
     const parsedData = JSON.parse(data);
     res.send({data: parsedData});
   } catch (error) {
@@ -138,7 +129,7 @@ app.get('/female/replace', (req, res) => {
 
 app.get('/female/api', (req, res) => {
   try {
-    const data = fs.readFileSync('./female.json');
+    const data = fs.readFileSync('./female_new.json');
     const parsedData = JSON.parse(data);
     res.send({data: parsedData});
   } catch (error) {
@@ -150,10 +141,7 @@ app.get('/female/api', (req, res) => {
 
 app.listen(port, () => {
   console.log(`listening on ${port}`)
-  // cronRunMaleRobot.start();
   cronReplaceMaleData.start();
-
-  // cronRunFemaleRobot.start();
   cronReplaceFemaleData.start();
 });
 
